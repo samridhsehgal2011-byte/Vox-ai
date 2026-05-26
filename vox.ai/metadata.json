@@ -1,0 +1,6 @@
+{
+  "name": "VOX-AI",
+  "description": "Advanced interface intelligence engine for operational strategy and design synthesis.",
+  "requestFramePermissions": ["camera", "geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

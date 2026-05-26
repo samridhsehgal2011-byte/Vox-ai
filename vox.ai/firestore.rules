@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isEmailOwner(email) {
+      return isSignedIn() && request.auth.token.email == email && request.auth.token.email_verified == true;
+    }
+
+    function isSystemOwner() {
+      return isSignedIn() && (
+        request.auth.token.email == "asdgaming127@gmail.com" || 
+        request.auth.token.email == "tanusehgal87@gmail.com" || 
+        request.auth.token.email == "p.sehgal1@gmail.com" || 
+        request.auth.token.email == "samridhsehgal2011@gmail.com"
+      );
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId) || isSystemOwner();
+    }
+
+    match /chats/{chatId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isEmailOwner(resource.data.userEmail));
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isEmailOwner(request.resource.data.userEmail));
+      allow update, delete: if isSignedIn() && (resource.data.userId == request.auth.uid || isEmailOwner(resource.data.userEmail));
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && (get(/databases/$(database)/documents/chats/$(chatId)).data.userId == request.auth.uid || isEmailOwner(get(/databases/$(database)/documents/chats/$(chatId)).data.userEmail));
+        allow write: if isSignedIn() && (get(/databases/$(database)/documents/chats/$(chatId)).data.userId == request.auth.uid || isEmailOwner(get(/databases/$(database)/documents/chats/$(chatId)).data.userEmail));
+      }
+    }
+  }
+}
